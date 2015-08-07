@@ -22,7 +22,7 @@ The boxplot shows median undercount percentages to be fairly consistent across v
 
 ```r
 # Make a boxplot of voting equipment and undercount
-boxplot(percent_undercount~equip,data=georgia, main="Undercount by Equip", xlab="Voting Equipment", ylab="Percent Undercount")
+boxplot(percent_undercount~equip, data=georgia, main="Undercount by Equip", xlab="Voting Equipment", ylab="Percent Undercount")
 ```
 
 ![](STA_380_Part_2_-_Exercises_1_files/figure-html/unnamed-chunk-3-1.png) 
@@ -30,7 +30,7 @@ boxplot(percent_undercount~equip,data=georgia, main="Undercount by Equip", xlab=
 
 ```r
 # Check variables in georgia
-head(georgia,2)
+head(georgia, 2)
 ```
 
 ```
@@ -44,7 +44,7 @@ head(georgia,2)
 
 ```r
 # Remove county, ballots, and votes
-georgia=georgia[,c(-1,-2,-3)]
+georgia = georgia[,c(-1,-2,-3)]
 ```
 Running a multiple linear regression reveals a strong and positive relationship between equipOPTICAL and percent_undercount with a regression coefficient of 1.381e-02 and a t-value of 3.412. EquipPUNCH is also a strong predictor of percent_undercount with a regression coefficient of 1.424e-02 and a t-value of 2.128. The results indicate that voting with punch cards and optical scans results in higher undercount percentages.
 
@@ -52,7 +52,7 @@ The regression output is consistent with our observations from the box plot as p
 
 ```r
 # Run a multiple linear regression predicting undercount
-lm.georgia = lm(percent_undercount~.,data=georgia)
+lm.georgia = lm(percent_undercount~., data=georgia)
 summary(lm.georgia)
 ```
 
@@ -88,7 +88,7 @@ Plotting poor and equip reveals that poor counties use optical scans and punch c
 
 ```r
 # Plot equip against poor, perAA, and urban
-plot(georgia$equip~georgia$poor,xlab = "Poor",ylab = "Equip")
+plot(georgia$equip~georgia$poor, xlab = "Poor", ylab = "Equip")
 ```
 
 ![](STA_380_Part_2_-_Exercises_1_files/figure-html/unnamed-chunk-6-1.png) 
@@ -96,7 +96,7 @@ plot(georgia$equip~georgia$poor,xlab = "Poor",ylab = "Equip")
 Plotting equip and perAA shows that counties with high African American populations use optical scans less frequently and punch cards more frequently than counties with low African American populations do. Therefore undercount percentages in counties with high African American populations will be affected by their punch card usage.
 
 ```r
-plot(georgia$equip~georgia$perAA,xlab = "PerAA",ylab = "Equip")
+plot(georgia$equip~georgia$perAA, xlab = "PerAA", ylab = "Equip")
 ```
 
 ![](STA_380_Part_2_-_Exercises_1_files/figure-html/unnamed-chunk-7-1.png) 
@@ -147,31 +147,31 @@ head(returns,2)
 
 ```r
 # Plot returns for each ETF and assess risk and return
-plot(returns[,1], type='l',main='SPY')
+plot(returns[,1], type='l', main='SPY')
 ```
 
 ![](STA_380_Part_2_-_Exercises_1_files/figure-html/unnamed-chunk-9-1.png) 
 
 ```r
-plot(returns[,2], type='l',main='TLT')
+plot(returns[,2], type='l', main='TLT')
 ```
 
 ![](STA_380_Part_2_-_Exercises_1_files/figure-html/unnamed-chunk-9-2.png) 
 
 ```r
-plot(returns[,3], type='l',main='LQD')
+plot(returns[,3], type='l', main='LQD')
 ```
 
 ![](STA_380_Part_2_-_Exercises_1_files/figure-html/unnamed-chunk-9-3.png) 
 
 ```r
-plot(returns[,4], type='l',main='EEM')
+plot(returns[,4], type='l', main='EEM')
 ```
 
 ![](STA_380_Part_2_-_Exercises_1_files/figure-html/unnamed-chunk-9-4.png) 
 
 ```r
-plot(returns[,5], type='l',main='VNQ')
+plot(returns[,5], type='l', main='VNQ')
 ```
 
 ![](STA_380_Part_2_-_Exercises_1_files/figure-html/unnamed-chunk-9-5.png) 
@@ -199,7 +199,7 @@ sigma_VNQ = sd(returns[,5])
 
 ```r
 # Perform bootstrap 5000 times for even split portfolio
-n_days=20
+n_days = 20
 set.seed(1234567)
 sim_even = foreach(i=1:5000, .combine='rbind') %do% {
 	totalwealth = 100000
@@ -260,9 +260,9 @@ sim_aggressive = foreach(i=1:5000, .combine='rbind') %do% {
 
 ```r
 # Compute average portfolio values of the 5000 simulations for each portfolio
-avg_evensplit_return=mean(sim_even[,n_days])
-avg_safe_return=mean(sim_safe[,n_days])
-avg_aggressive_return=mean(sim_aggressive[,n_days])
+avg_evensplit_return = mean(sim_even[,n_days])
+avg_safe_return = mean(sim_safe[,n_days])
+avg_aggressive_return = mean(sim_aggressive[,n_days])
 ```
 Plotting the average 4-week returns for each portfolio type reveals that the aggressive portfolio yields the highest return on average followed by the even split portfolio and the safe portfolio.  
 The even split portfolio yields 0.012 on average.  
@@ -271,10 +271,10 @@ The aggressive portfolio yields 0.02 on average.
 
 ```r
 # Plot the average portfolio values for each portfolio
-plot(c(1,20),c(100000,avg_evensplit_return),type='l',col='#009E73',lwd=2,ylim=c(100000,103000),xlab='Days',ylab='Portfolio Value',main="Average 4-week return by Portfolio Type")
-lines(c(1,20),c(100000,avg_safe_return),type='l',col='#56B4E9',lwd=2)
-lines(c(1,20),c(100000,avg_aggressive_return),type='l',col='#E69F00',lwd=2)
-legend('topright', c('Aggressive','Even Split','Safe'),col=c('#E69F00','#009E73','#56B4E9'),lwd=2,bty='n')
+plot(c(1,20), c(100000,avg_evensplit_return), type='l', col='#009E73', lwd=2, ylim=c(100000,103000), xlab='Days', ylab='Portfolio Value', main="Average 4-week return by Portfolio Type")
+lines(c(1,20), c(100000, avg_safe_return),type='l', col='#56B4E9', lwd=2)
+lines(c(1,20), c(100000,avg_aggressive_return), type='l', col='#E69F00', lwd=2)
+legend('topright', c('Aggressive','Even Split','Safe'), col=c('#E69F00','#009E73','#56B4E9'), lwd=2, bty='n')
 ```
 
 ![](STA_380_Part_2_-_Exercises_1_files/figure-html/unnamed-chunk-15-1.png) 
@@ -311,19 +311,19 @@ quantile(sim_aggressive[,n_days], 0.05) - 100000
 
 ```r
 # Graph the return distribution for each portfolio
-hist(sim_even[,n_days]- 100000,xlab='Portfolio Value',main='Distribution of Even Split Portfolio Returns')
+hist(sim_even[,n_days] - 100000, xlab='Portfolio Value', main='Distribution of Even Split Portfolio Returns')
 ```
 
 ![](STA_380_Part_2_-_Exercises_1_files/figure-html/unnamed-chunk-16-1.png) 
 
 ```r
-hist(sim_safe[,n_days]- 100000,xlab='Portfolio Value',main='Distribution of Safe Portfolio Returns')
+hist(sim_safe[,n_days] - 100000, xlab='Portfolio Value', main='Distribution of Safe Portfolio Returns')
 ```
 
 ![](STA_380_Part_2_-_Exercises_1_files/figure-html/unnamed-chunk-16-2.png) 
 
 ```r
-hist(sim_aggressive[,n_days]- 100000,xlab='Portfolio Value',main='Distribution of Aggressive Portfolio Returns')
+hist(sim_aggressive[,n_days]- 100000, xlab='Portfolio Value', main='Distribution of Aggressive Portfolio Returns')
 ```
 
 ![](STA_380_Part_2_-_Exercises_1_files/figure-html/unnamed-chunk-16-3.png) 
@@ -345,7 +345,7 @@ setwd("C:/Users/Julia Wu/Desktop/Predictive Models 2/STA380/data")
 wine = read.csv("wine.csv")
 
 # Check variables in wine
-head(wine,2)
+head(wine, 2)
 ```
 
 ```
@@ -481,7 +481,7 @@ Run principal component analysis to distinguish red wines from white wines
 
 ```r
 pc1 = prcomp(wine2, scale.=TRUE)
-plot(pc1,main='Variance by PC')
+plot(pc1, main='Variance by PC')
 ```
 
 ![](STA_380_Part_2_-_Exercises_1_files/figure-html/unnamed-chunk-21-1.png) 
@@ -521,7 +521,7 @@ setwd("C:/Users/Julia Wu/Desktop/Predictive Models 2/STA380/data")
 social = read.csv("social_marketing.csv",header=TRUE,row.names=1)
 
 # Check variables in social
-head(social,2)
+head(social, 2)
 ```
 
 ```
@@ -547,7 +547,7 @@ head(social,2)
 
 ```r
 # Remove chatter, uncategorized, spam, and adult
-social=social[,c(-1,-5,-35,-36)]
+social = social[,c(-1,-5,-35,-36)]
 ```
 
 
@@ -559,7 +559,7 @@ social_freq = social/rowSums(social)
 pc2 = prcomp(social_freq, scale=TRUE)
 loadings = pc2$rotation
 scores = pc2$x
-plot(pc2,main='Variance by PC')
+plot(pc2, main='Variance by PC')
 ```
 
 ![](STA_380_Part_2_-_Exercises_1_files/figure-html/unnamed-chunk-26-1.png) 
