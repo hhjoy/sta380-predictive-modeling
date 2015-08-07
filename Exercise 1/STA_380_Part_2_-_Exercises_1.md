@@ -666,11 +666,3 @@ colnames(social_freq)[tail(o7,4)]
 ## [1] "art"        "tv_film"    "news"       "automotive"
 ```
 
-```r
-colnames(social_freq)[tail(o8,4)]
-```
-
-```
-## [1] "family"  "food"    "cooking" "music"
-```
-
