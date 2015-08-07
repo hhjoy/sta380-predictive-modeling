@@ -18,7 +18,7 @@ georgia = read.csv("georgia2000.csv")
 # Calculate the percent of votes that were undercounted
 georgia$percent_undercount <- (georgia$ballots - georgia$votes)/georgia$ballots
 ```
-The boxplot shows median undercount percentages to be fairly consistent across voting equipment, with punch card percentages being slightly higher. There are 5 outliers above the maximum - 1 for lever and 4 for optical. The outliers for optical are interesting as they indicate particularly high undercount percentages in 4 counties. These outliers are likely the result of factors outside of the voting equipment used.
+The boxplot shows median undercount percentages to be fairly consistent across voting equipment, with the median for punch card being slightly higher. There are 5 outliers above the maximum - 1 for lever and 4 for optical. The outliers for optical are interesting as they indicate particularly high undercount percentages in 4 counties. These outliers are likely the result of factors outside of the voting equipment used.
 
 ```r
 # Make a boxplot of voting equipment and undercount
@@ -104,7 +104,7 @@ plot(georgia$equip~georgia$perAA, xlab = "PerAA", ylab = "Equip")
 
 Evaluating ETF Portfolios with Bootstrapping
 --------------------------------------------
-In the following, bootstrap resampling will be used to estimate the 4-week (20 trading day) value at risk of 3 portfolios at the 5% level. An evenly split portfolio, a safe/risk averse portfolio, and an aggressive/risk seeking portfolio will be assessed. These portfolios will be composed of 5 ETFs - SPY, TLT, LQD, EEM, and VNQ. 
+In the following, bootstrap resampling will be used to estimate the 4-week (20-trading day) value at risk of 3 portfolios at the 5% level. An evenly split portfolio, a safe/risk averse portfolio, and an aggressive/risk seeking portfolio will be assessed. These portfolios will be composed of 5 ETFs - SPY, TLT, LQD, EEM, and VNQ. 
 
 ```r
 # Import libraries
@@ -279,7 +279,7 @@ legend('topright', c('Aggressive','Even Split','Safe'), col=c('#E69F00','#009E73
 
 ![](STA_380_Part_2_-_Exercises_1_files/figure-html/unnamed-chunk-15-1.png) 
 
-However, the 4-week value at risk at the 5% level is $ -5041.60 for the even split portfolio, $ -2309.13 for the safe portfolio, and $ -11292.37 for the risky portfolio. Thus, greater returns come at the cost of higher risk.
+However, the 4-week value at risk at the 5% level is $ -5041.60 for the even split portfolio, $ -2309.13 for the safe portfolio, and $ -11292.37 for the risky portfolio. Thus, the potential for greater returns comes at the cost of higher risk.
 
 ```r
 # Calculate value at risk aat the 5% level for each portfolio
