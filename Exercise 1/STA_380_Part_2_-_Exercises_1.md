@@ -1,7 +1,7 @@
 STA 380, Part 2: Exercises 1
 ============================
 
-Exploratory Analysis on Voter Undercount in Georgia
+Exploratory Analysis on Vote Undercount in Georgia
 ---------------------------------------------------
 The following investigates the issue of vote undercount in Georgia for the 2000 presidential election using data from 159 counties. Undercount is defined as the difference between the number of ballots cast and the number of legal votes recorded.
 
