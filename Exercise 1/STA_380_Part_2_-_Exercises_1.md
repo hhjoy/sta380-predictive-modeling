@@ -486,7 +486,7 @@ plot(pc1, main='Variance by PC')
 
 ![](STA_380_Part_2_-_Exercises_1_files/figure-html/unnamed-chunk-21-1.png) 
 
-PCA did a good job in distinguishing red wines from white wines. The plot shows two clear clusters separating reds from whites with only very few whites in the red cluster. It appears that PCA does a better job at distinguishing wine color than hierarchial clustering does.
+PCA did well in distinguishing red wines from white wines. The plot shows two clear clusters separating reds from whites with only very few whites in the red cluster. It appears that PCA does better in distinguishing wine color than hierarchial clustering does.
 
 ```r
 scores = pc1$x
@@ -495,7 +495,7 @@ qplot(scores[,1], scores[,2], color=wine$color, xlab='Component 1', ylab='Compon
 
 ![](STA_380_Part_2_-_Exercises_1_files/figure-html/unnamed-chunk-22-1.png) 
 
-Color coding the scores by quality, we see that some quality scores are centered around the same area, but the relationships aren't as clear. PCA doesn't doesn't do as good of a job in classifying wine quality. 
+Color coding the scores by quality, we see that some quality scores are centered around the same area, but the relationships aren't as clear. PCA isn't as effective in classifying wine quality. 
 
 ```r
 qplot(scores[,1], scores[,2], color=as.factor(wine$quality), xlab='Component 1', ylab='Component 2')
