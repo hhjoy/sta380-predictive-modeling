@@ -1,0 +1,358 @@
+---
+output: 
+  html_document: 
+    keep_md: yes
+---
+STA 380, Part 2: Exercises 2
+============================
+
+Flights at ABIA
+---------------
+
+The following graphs show average arrival delays in minutes by hour of day, day of week, and month of year, so that an individual can easily determine optimal times to fly to minimize delays.
+```{r results='hide', message=FALSE, warning=FALSE}
+# Import library
+library(ggplot2)
+```
+
+```{r message=FALSE, warning=FALSE}
+# Read in data
+setwd("C:/Users/Julia Wu/Desktop/Predictive Models 2/STA380/data")
+flights = read.csv("ABIA.csv")
+```
+
+```{r message=FALSE, warning=FALSE}
+# Check data
+head(flights,5)
+
+# Extract Hour of Day
+flights$HourOfDay = as.numeric(substr(flights$DepTime, 1, nchar(flights$DepTime)-2))
+
+# Create a binary arrival delay column
+flights$Delay <- ifelse(flights$ArrDelay < 0, 1, ifelse(flights$ArrDelay >= 0, "0", "NA"))
+
+# Plot average delays by hour of day
+ggplot(data = flights, aes(flights$HourOfDay, flights$ArrDelay)) + stat_summary(fun.y = mean, geom = "bar") + scale_x_discrete("Hour of Day", breaks=1:24, limits=c(0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25)) + xlim(0,24) + scale_y_continuous("Mean Arrival Delay (mins)")
+
+# Plot average delays by day of week
+ggplot(data = flights, aes(flights$DayOfWeek, flights$ArrDelay)) + stat_summary(fun.y = mean, geom = "bar") + scale_x_discrete("Day of Week", breaks=1:7, labels=c("Mon","Tue","Wed","Thu","Fri","Sat","Sun")) + xlim(0,8) + scale_y_continuous("Mean Arrival Delay (mins)")
+
+# Plot average delays by month of year
+ggplot(data = flights, aes(flights$Month, flights$ArrDelay)) + stat_summary(fun.y = mean, geom = "bar") + scale_x_discrete("Month", breaks=1:12, labels=c("Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec")) + scale_y_continuous("Mean Arrival Delay (mins)")
+```
+
+
+Author Attribution
+------------------
+
+In the following, we will fit a Naive Bayes model and a Principle Component Regression model to 50 articles from 50 different authors to predict the author of a test set of articles on the basis of its textual content.
+```{r results='hide', message=FALSE, warning=FALSE}
+# Import libraries
+library(tm)
+library(SnowballC)
+library(plyr)
+```
+
+```{r message=FALSE, warning=FALSE}
+# Reader function that specifies English
+readerPlain = function(fname){
+				readPlain(elem=list(content=readLines(fname)), 
+							id=fname, language='en')}
+```
+First, we read the training data in and create a corpus.
+```{r message=FALSE, warning=FALSE}							
+# Roll directories together into a single corpus
+setwd("C:/Users/Julia Wu/Desktop/Predictive Models 2/STA380/data")
+author_dirs = Sys.glob('../data/ReutersC50/C50train/*')
+
+# Loop through author_dirs to get the files and the authors
+file_list = c()
+labels = c()
+for(author in author_dirs) {
+	author_name = substring(author, first=29)
+	files_to_add = Sys.glob(paste0(author, '/*.txt'))
+	file_list = append(file_list, files_to_add)
+	labels = append(labels, rep(author_name, length(files_to_add)))
+}
+
+# Read in file_list and remove .txt from the file name
+all_docs = lapply(file_list, readerPlain) 
+names(all_docs) = file_list
+names(all_docs) = sub('.txt', '', names(all_docs))
+
+# Create a corpus of documents with the author's name as the document name
+my_corpus = Corpus(VectorSource(all_docs))
+names(my_corpus) = labels
+```
+
+Then we preprocess the data by setting all the words to lowercase, removing numbers, removing punctuation, stripping the words of white space, removing stop words, and combining stem words.
+```{r message=FALSE, warning=FALSE}
+# Preprocess the data
+my_corpus = tm_map(my_corpus, content_transformer(tolower)) # make everything lowercase
+my_corpus = tm_map(my_corpus, content_transformer(removeNumbers)) # remove numbers
+my_corpus = tm_map(my_corpus, content_transformer(removePunctuation)) # remove punctuation
+my_corpus = tm_map(my_corpus, content_transformer(stripWhitespace)) # remove excess white-space
+my_corpus = tm_map(my_corpus, content_transformer(removeWords), stopwords("SMART")) # remove stop words
+my_corpus = tm_map(my_corpus, stemDocument) # combine stem words
+```
+
+Next, we convert the corpus into a document term matrix (DTM). The summary statistics show that the DTM has 99% sparsity. Running the models with and without removing sparse terms reveals that not removing sparse terms yields higher acccuracy. However, the difference is marginal so we will remove sparse terms to make the data more manageable.
+```{r message=FALSE, warning=FALSE}
+# Create a document term matrix
+DTM = DocumentTermMatrix(my_corpus)
+
+# Basic summary statistics
+DTM
+
+# Change it to a special kind of sparse matrix format
+class(DTM)
+
+# Remove sparse terms
+DTM = removeSparseTerms(DTM, 0.9953)
+DTM
+
+# Create a dense matrix
+X = as.matrix(DTM)
+```
+
+We then perform the same steps to read in the test data.
+```{r message=FALSE, warning=FALSE}
+# Roll directories together into a single corpus
+author_dirs_test = Sys.glob('../data/ReutersC50/C50test/*')
+
+# Loop through author_dirs to get the files and the authors
+file_list_test = NULL
+labels_test = NULL
+for(author_test in author_dirs_test) {
+	author_name_test = substring(author_test, first=28)
+	files_to_add_test = Sys.glob(paste0(author_test, '/*.txt'))
+	file_list_test = append(file_list_test, files_to_add_test)
+	labels_test = append(labels_test, rep(author_name_test, length(files_to_add_test)))
+}
+
+# Read in file_list and remove .txt from the file name
+all_docs_test = lapply(file_list_test, readerPlain) 
+names(all_docs_test) = file_list_test
+names(all_docs_test) = sub('.txt', '', names(all_docs_test))
+
+# Create a corpus of documents with the author's name as the document name
+my_corpus_test = Corpus(VectorSource(all_docs_test))
+names(my_corpus_test) = labels_test
+
+# Preprocess the data
+my_corpus_test = tm_map(my_corpus_test, content_transformer(tolower)) # make everything lowercase
+my_corpus_test = tm_map(my_corpus_test, content_transformer(removeNumbers)) # remove numbers
+my_corpus_test = tm_map(my_corpus_test, content_transformer(removePunctuation)) # remove punctuation
+my_corpus_test = tm_map(my_corpus_test, content_transformer(stripWhitespace)) # remove excess white-space
+my_corpus_test = tm_map(my_corpus_test, content_transformer(removeWords), stopwords("SMART")) # remove stop words
+my_corpus_test = tm_map(my_corpus_test, stemDocument) # combine stem words
+
+# Create a document term matrix
+DTM_test = DocumentTermMatrix(my_corpus_test)
+
+# Basic summary statistics
+DTM_test
+
+# Change it to a special kind of sparse matrix format
+class(DTM_test)
+
+# Remove sparse terms
+DTM_test = removeSparseTerms(DTM_test, 0.9953)
+DTM_test
+
+# Create a dense matrix
+X_test = as.matrix(DTM_test)
+```
+
+Next, to make sure our matrices match up, we need to account for words that are in training but aren't in test and words that are in test but aren't in training. We will add columns into the test matrix for words that are in training but aren't in test and remove words that are in test but aren't in training. While words in test that aren't in training could provide additional insight for author prediction, it is common practice to ignore them for simplicity.
+```{r message=FALSE, warning=FALSE}
+# Get the list of words in the training set
+X_words = colnames(X)
+
+# Get the list of words in the test set
+X_test_words = colnames(X_test)
+
+# Create 2 empty vectors to store words to add to test and words to drop from test
+test_add = vector(length=0)
+test_drop = vector(length=0)
+
+# Loop through the test words and add those not in the train to the vector test_drop
+for (test_word in X_test_words) {
+  if (!test_word %in% X_words) {
+    test_drop <- c(test_drop, test_word)
+  }
+}
+
+# Loop through the train words and add those not in test to the vector test_add
+for (word in X_words) {
+  if (!word %in% X_test_words) {
+    test_add <- c(test_add, word)
+  }
+}
+
+# Create a matrix of 0's to insert into the test matrix
+zero <- matrix(0, nrow = nrow(X), ncol=length(test_add))
+
+# Name the columns using the words in test_add
+colnames(zero) <- test_add
+
+# Add the zero matrix to the test matrix
+X2_test = cbind(X_test, zero)
+
+# Sort the columns alphabetically so they match the X2
+X2_test = X2_test[,order(colnames(X2_test))]
+
+# Drop the words in test_drop from the test matrix
+X2_test = X2_test[,!colnames(X2_test) %in% test_drop]
+```
+
+Next, we perform Naive Bayes by creating a dense matrix and calculating multinomial probability vectors for each author using Laplace smoothing.
+```{r message=FALSE, warning=FALSE}
+# Create a dense matrix
+X = as.matrix(DTM)
+
+# Calculate the smoothing factor
+smooth_count = 1/nrow(X)
+
+# Add the smoothing factor and aggregate the word counts + smoothing factor for each author
+by_word_wc = rowsum(X + smooth_count, labels)
+
+# Sum the word counts + smoothing factor for each word for each author
+total_wc = rowSums(by_word_wc)
+
+# Divide by_word_wc by total_wc to get the multinomial probability vector
+w = by_word_wc / total_wc
+
+# Log the vector for easier interpretability
+w = log(w)
+
+# Set X2 equal to the multinomial probability vector w
+X2 = w
+```
+
+We then multiply the test matrix by the multinomial probability vector. The column name of the largest value for each document gives us the prediction.
+```{r message=FALSE, warning=FALSE}
+# Transpose the multinomial probability vector for matrix multiplication
+X2 = t(X2)
+
+# Multiply the test matrix by X2
+log_prob = X2_test %*% X2
+
+# Get the prediction by return the column name of the max value for each document 
+predict = colnames(log_prob)[max.col(log_prob)]
+
+# Add the prediction the the matrix
+log_prob = cbind(log_prob, predict)
+
+# Create a column that checks the prediction against the actual
+accurate = as.integer(rownames(log_prob) == log_prob[,51])
+
+# Create a dataframe that includes the actual, prediction, and accuracy
+nb_results = cbind.data.frame(rownames(log_prob), predict, accurate)
+```
+
+The Naive Bayes model resulted in an overall 63.52% prediction accuracy. Some authors had high prediction accuracies than other. Aaron Pressman, for example, had a prediction accuracy of 94%. Whereas other authors such as Benjamin Kang Lim were harder to identify. Benjamin had a 26% prediction accuracy and was confused with Jane Macarteny 26% of the time. David Lawder also had a low prediction accuracy of 14% and was confused with Todd Nissen 50% of the time. Looking at David Lawder and Tom Nissen's documents, the association makes sense since both authors write about the auto industry.
+```{r message=FALSE, warning=FALSE}
+# Return the total accuracy
+mean(accurate)
+
+# Add column names to dataframe
+colnames(nb_results) <- c("Actual","Prediction","Accuracy")
+
+# Create a summary of each actual and prediction combination with the number of instances (n) and the percentage of that outcome occuring for each author
+length <- ddply(nb_results, .(Actual), transform, sum.n = length(Actual))
+table <- ddply(length, .(Actual, Prediction), summarise, n=length(Prediction), percentage=n / sum.n[1] * 100)
+table
+```
+
+Next we run Principle Component Analysis with Multinomial Regression.
+```{r results='hide', message=FALSE, warning=FALSE}
+# Import libraries
+library(glmnet)
+library(nnet)
+```
+PCR using the first 500 principle components yields very similar results with a slightly higher prediction accuracy of 65.52%.
+```{r message=FALSE, warning=FALSE}
+# Set A = training DTM
+A = X
+
+# Set b = actual author names
+b = rownames(X)
+
+# Run PCA scaled
+pc_words = prcomp(A, scale=TRUE)
+
+# Check how many principle components
+dim(pc_words$rotation)
+
+# Calculate scores
+K = 500
+V = pc_words$rotation[,1:K]
+scores = A %*% V
+
+# Calculate test alphas
+test_X = X2_test %*% V
+
+# Set train x and train y
+train_X = scores
+train_y = rownames(scores)
+
+# Run multinomial regression
+multi = glmnet(x=train_X, y=train_y, alpha=0, family="multinomial")
+
+# Predict
+predict = predict(multi, newx=test_X, type="class", s=0)
+
+# Check accuracy
+multi_accuracy = as.integer(predict == rownames(X2_test))
+
+# Return the total accuracy
+mean(multi_accuracy)
+
+# Create dataframe of actual, prediction, and accuracy
+pcr_results = cbind.data.frame(rownames(X2_test), predict, multi_accuracy)
+colnames(pcr_results) = c("Actual", "Prediction", "Accuracy")
+
+# Create a summary of each actual and prediction combination with the number of instances (n) and the percentage of that outcome occuring for each author
+length <- ddply(pcr_results, .(Actual), transform, sum.n = length(Actual))
+table <- ddply(length, .(Actual, Prediction), summarise, n=length(Prediction), percentage=n / sum.n[1] * 100)
+table
+```
+
+PCR with lasso yielded a lower prediction accuracy of 61.8%. Output not shown.
+```
+multi_lasso = glmnet(x=train_X, y=train_y, alpha=1, family="multinomial")
+cv_multi = cv.glmnet(x=train_X, y=train_y, type.measure="class", family="multinomial", alpha=1)
+bestlam = cv_multi$lambda.min
+lasso_pred = predict(multi_lasso, s=bestlam, newx=test_X, type="class")
+multi_lasso_accuracy = lasso_pred == rownames(X2_test)
+mean(multi_lasso_accuracy)
+```
+Naive Bayes and PCR do well in predicting author identities with close prediction accuracies of 64% and 65%, respectively. However, Naive Bayes may not be a good model for classifying authors because it assumes that all variables are independent and word usage is in no way independent. Although, in terms of computing time, Naive Bayes is far more efficient to run than PCR is.
+
+
+Association Rule Mining with Groceries
+--------------------------------------
+
+The following uses association rule mining on grocery purchases to identify interesting association rules for these shopping baskets. Support was set to > .01, meaning 1% of all transactions contain both x and y (~99). Confidence was set to > 0.5, meaning more than 50% of transactions that contain x also contain y. With these parameters and a length of <= 3, the strongest association is curd and yogurt with milk. There are several other associations with milk and a couple with other vegetables. It appears that milk and other vegetables are frequently purchased in certain conjunctions.
+```{r results='hide', message=FALSE, warning=FALSE}
+# Import library
+library(arules)
+```
+
+```{r message=FALSE, warning=FALSE}
+# Read in data
+setwd("C:/Users/Julia Wu/Desktop/Predictive Models 2/STA380/data")
+groceries = read.transactions("groceries.txt", format="basket", sep=",")
+dim(groceries)
+
+# Cast this variable as a special arules "transactions" class
+groceries_trans <- as(groceries, "transactions")
+
+# Now run the 'apriori' algorithm
+# Look at rules with support > .01 & confidence >.5 & length(# of items) <= 3
+groceries_rules <- apriori(groceries_trans, parameter=list(support=.01, confidence=.5, maxlen=3))
+                         
+# Look at the output
+inspect(groceries_rules)
+```
