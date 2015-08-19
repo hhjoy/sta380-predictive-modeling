@@ -84,7 +84,6 @@ names(all_docs) = sub('.txt', '', names(all_docs))
 my_corpus = Corpus(VectorSource(all_docs))
 names(my_corpus) = labels
 ```
-
 Then we preprocess the data by setting all the words to lowercase, removing numbers, removing punctuation, stripping the words of white space, removing stop words, and combining stem words.
 ```{r message=FALSE, warning=FALSE}
 # Preprocess the data
@@ -95,8 +94,7 @@ my_corpus = tm_map(my_corpus, content_transformer(stripWhitespace)) # remove exc
 my_corpus = tm_map(my_corpus, content_transformer(removeWords), stopwords("SMART")) # remove stop words
 my_corpus = tm_map(my_corpus, stemDocument) # combine stem words
 ```
-
-Next, we convert the corpus into a document term matrix (DTM). The summary statistics show that the DTM has 99% sparsity. Running the models with and without removing sparse terms reveals that not removing sparse terms yields higher acccuracy. However, the difference is marginal so we will remove sparse terms to make the data more manageable.
+Next, we convert the corpus into a document term matrix (DTM). The summary statistics show that the DTM has 99% sparsity. Running the models with and without removing sparse terms reveals that not removing sparse terms yields higher acccuracy. However, the difference is marginal, so we will remove sparse terms to make the data more manageable.
 ```{r message=FALSE, warning=FALSE}
 # Create a document term matrix
 DTM = DocumentTermMatrix(my_corpus)
@@ -114,7 +112,6 @@ DTM
 # Create a dense matrix
 X = as.matrix(DTM)
 ```
-
 We then perform the same steps to read in the test data.
 ```{r message=FALSE, warning=FALSE}
 # Roll directories together into a single corpus
@@ -163,8 +160,7 @@ DTM_test
 # Create a dense matrix
 X_test = as.matrix(DTM_test)
 ```
-
-Next, to make sure our matrices match up, we need to account for words that are in training but aren't in test and words that are in test but aren't in training. We will add columns into the test matrix for words that are in training but aren't in test and remove words that are in test but aren't in training. While words in test that aren't in training could provide additional insight for author prediction, it is common practice to ignore them for simplicity.
+Next, to make sure our matrices match up, we need to account for words that are in training but aren't in test and words that are in test but aren't in training. We will add columns into the test matrix for words that are in training but aren't in test and remove words that are in test but aren't in training. While words in test that aren't in training could provide additional insight for author prediction, it is common practice to ignore them in order to simplify the process.
 ```{r message=FALSE, warning=FALSE}
 # Get the list of words in the training set
 X_words = colnames(X)
@@ -205,7 +201,6 @@ X2_test = X2_test[,order(colnames(X2_test))]
 # Drop the words in test_drop from the test matrix
 X2_test = X2_test[,!colnames(X2_test) %in% test_drop]
 ```
-
 Next, we perform Naive Bayes by creating a dense matrix and calculating multinomial probability vectors for each author using Laplace smoothing.
 ```{r message=FALSE, warning=FALSE}
 # Create a dense matrix
@@ -229,7 +224,6 @@ w = log(w)
 # Set X2 equal to the multinomial probability vector w
 X2 = w
 ```
-
 We then multiply the test matrix by the multinomial probability vector. The column name of the largest value for each document gives us the prediction.
 ```{r message=FALSE, warning=FALSE}
 # Transpose the multinomial probability vector for matrix multiplication
@@ -250,8 +244,7 @@ accurate = as.integer(rownames(log_prob) == log_prob[,51])
 # Create a dataframe that includes the actual, prediction, and accuracy
 nb_results = cbind.data.frame(rownames(log_prob), predict, accurate)
 ```
-
-The Naive Bayes model resulted in an overall 63.52% prediction accuracy. Some authors had high prediction accuracies than other. Aaron Pressman, for example, had a prediction accuracy of 94%. Whereas other authors such as Benjamin Kang Lim were harder to identify. Benjamin had a 26% prediction accuracy and was confused with Jane Macarteny 26% of the time. David Lawder also had a low prediction accuracy of 14% and was confused with Todd Nissen 50% of the time. Looking at David Lawder and Tom Nissen's documents, the association makes sense since both authors write about the auto industry.
+The Naive Bayes model results in an overall prediction accuracy of 63.52%. Some authors have higher prediction accuracies than other. Aaron Pressman, for example, has a prediction accuracy of 94%. Whereas other authors such as Benjamin Kang Lim are harder to identify. Benjamin has a 26% prediction accuracy and is confused with Jane Macarteny 26% of the time. David Lawder also has a low prediction accuracy of 14% and is confused with Todd Nissen 50% of the time. Looking at David Lawder and Tom Nissen's documents, the association makes sense since both authors write about the auto industry.
 ```{r message=FALSE, warning=FALSE}
 # Return the total accuracy
 mean(accurate)
@@ -264,14 +257,13 @@ length <- ddply(nb_results, .(Actual), transform, sum.n = length(Actual))
 table <- ddply(length, .(Actual, Prediction), summarise, n=length(Prediction), percentage=n / sum.n[1] * 100)
 table
 ```
-
 Next we run Principle Component Analysis with Multinomial Regression.
 ```{r results='hide', message=FALSE, warning=FALSE}
 # Import libraries
 library(glmnet)
 library(nnet)
 ```
-PCR using the first 500 principle components yields very similar results with a slightly higher prediction accuracy of 65.52%.
+PCR using the first 500 principle components yields similar results to Naive Bayes with a slightly higher prediction accuracy of 65.52%.
 ```{r message=FALSE, warning=FALSE}
 # Set A = training DTM
 A = X
@@ -318,8 +310,7 @@ length <- ddply(pcr_results, .(Actual), transform, sum.n = length(Actual))
 table <- ddply(length, .(Actual, Prediction), summarise, n=length(Prediction), percentage=n / sum.n[1] * 100)
 table
 ```
-
-PCR with lasso yielded a lower prediction accuracy of 61.8%. Output not shown.
+PCR with lasso yields a lower prediction accuracy of 61.8%. Output not shown.
 ```
 multi_lasso = glmnet(x=train_X, y=train_y, alpha=1, family="multinomial")
 cv_multi = cv.glmnet(x=train_X, y=train_y, type.measure="class", family="multinomial", alpha=1)
@@ -328,13 +319,13 @@ lasso_pred = predict(multi_lasso, s=bestlam, newx=test_X, type="class")
 multi_lasso_accuracy = lasso_pred == rownames(X2_test)
 mean(multi_lasso_accuracy)
 ```
-Naive Bayes and PCR do well in predicting author identities with close prediction accuracies of 64% and 65%, respectively. However, Naive Bayes may not be a good model for classifying authors because it assumes that all variables are independent and word usage is in no way independent. Although, in terms of computing time, Naive Bayes is far more efficient to run than PCR is.
+Overall, Naive Bayes and PCR do well in predicting author identities with close prediction accuracies of 64% and 65%, respectively. However, Naive Bayes may not be a good model for classifying authors because it assumes that all variables are independent and word usage is in no way independent. Although, in terms of computing time, Naive Bayes is far more efficient to run than PCR is.
 
 
 Association Rule Mining with Groceries
 --------------------------------------
 
-The following uses association rule mining on grocery purchases to identify interesting association rules for these shopping baskets. Support was set to > .01, meaning 1% of all transactions contain both x and y (~99). Confidence was set to > 0.5, meaning more than 50% of transactions that contain x also contain y. With these parameters and a length of <= 3, the strongest association is curd and yogurt with milk. There are several other associations with milk and a couple with other vegetables. It appears that milk and other vegetables are frequently purchased in certain conjunctions.
+The following uses association rule mining on grocery purchases to identify interesting association rules for shopping baskets. Support was set to > .01, meaning 1% of all transactions must contain both x and y (~99). Confidence was set to > 0.5, meaning more than 50% of transactions that contain x must also contain y. With these parameters and a length of <= 3, whole milk and other vegetables appear to be frequently purchased in certain conjunctions. The strongest association is curd & yogurt with whole milk followed by butter & other vegetables with whole milk. There are several other associations with whole milk and a couple with other vegetables. All are listed below.
 ```{r results='hide', message=FALSE, warning=FALSE}
 # Import library
 library(arules)
