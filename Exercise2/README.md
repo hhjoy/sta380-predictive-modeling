@@ -88,7 +88,7 @@ ggplot(data = flights, aes(flights$Month, flights$ArrDelay)) + stat_summary(fun.
 Author Attribution
 ------------------
 
-In the following, we will fit a Naive Bayes model and a Principle Component Regression model to 50 articles from 50 different authors to predict the author of a test set of articles on the basis of its textual content.
+In the following, we will fit a Naive Bayes model and a Principal Component Regression model to 50 articles from 50 different authors to predict the author of a test set of articles on the basis of its textual content.
 
 ```r
 # Import libraries
@@ -692,14 +692,14 @@ table
 ## 319      WilliamKazer          TanEeLyn  4          8
 ## 320      WilliamKazer      WilliamKazer 16         32
 ```
-Next we run Principle Component Analysis with Multinomial Regression.
+Next we run Principal Component Analysis with Multinomial Regression.
 
 ```r
 # Import libraries
 library(glmnet)
 library(nnet)
 ```
-PCR using the first 500 principle components yields similar results to Naive Bayes with a slightly higher prediction accuracy of 65.52%.
+PCR using the first 500 principal components yields similar results to Naive Bayes with a slightly higher prediction accuracy of 65.52%.
 
 ```r
 # Set A = training DTM
@@ -711,7 +711,7 @@ b = rownames(X)
 # Run PCA scaled
 pc_words = prcomp(A, scale=TRUE)
 
-# Check how many principle components
+# Check how many principal components
 dim(pc_words$rotation)
 ```
 
